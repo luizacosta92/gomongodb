@@ -1,0 +1,23 @@
+version: "3.9"
+
+services:
+  mongo:
+    image: mongo:6
+    container_name: workshop-mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_DATABASE: workshop
+      MONGO_INITDB_ROOT_USERNAME: workshop
+      MONGO_INITDB_ROOT_PASSWORD: pass123
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mongo_data:
