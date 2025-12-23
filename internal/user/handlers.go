@@ -30,40 +30,29 @@ func (h *Handlers) CreateUser(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid JSON: " + err.Error()})
 		return
 	}
-	var user User
-
-	//considerando a possibilidade de erro, ele analisa se o JSON é valido
-	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid JSON: " + err.Error()})
+	if input.Name == "" || input.Whatsapp == "" || input.Age == 0 || input.Dpp == "" || input.City == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "all fields are required"})
 		return
 	}
-	if user.Name == "" || user.Whatsapp == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "name and whatsapp are required"})
-		return
-	}
-
-	t, err := time.Parse("01-02-2006", user.Dpp.Format("01-02-2006"))
+	t, err := time.Parse("01-02-2006", input.Dpp)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid dpp format: " + err.Error()})
 		return
 	}
-	user.Dpp = t
-	
-	u := User{
-		Name: user.Name,
-		Whatsapp: user.Whatsapp,
-		Age: user.Age,
+	user := User{
+		Name: input.Name,
+		Whatsapp: input.Whatsapp,
+		Age: input.Age,
 		Dpp: time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, time.UTC),
-		City: user.City,
+		City: input.City,
 	}
-
-	id, err := h.repo.Create(c.Request.Context(), u)
+	id, err := h.repo.Create(c.Request.Context(), user)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "db insert error: " + err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"id": id, "user": u})
+	c.JSON(http.StatusCreated, gin.H{"id": id, "user": user})
 }
 
 func (h *Handlers) GetAllUsers(c *gin.Context) {
